@@ -1,513 +1,383 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { 
+  LayoutDashboard, 
+  FileText, 
+  User, 
+  Settings, 
+  Search, 
+  Bell, 
+  Menu, 
+  X,
+  TrendingUp,
+  Eye,
+  Heart,
+  MessageSquare,
+  Edit2,
+  Trash2,
+  MoreVertical,
+  ChevronRight
+} from "lucide-react";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  Sparkles, Layers, Link as LinkIcon, Settings, 
-  Plus, GripVertical, Trash2, ExternalLink, Image as ImageIcon,
-  Palette, BarChart3, Users, MousePointer2, TrendingUp, LogOut, User as UserIcon
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
-} from 'recharts';
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { stats as mockStats, activityData, recentPosts } from "@/lib/mockData";
 import { motion, AnimatePresence } from "framer-motion";
 
-import bgMobile from "@/assets/images/bg-mobile-1.png";
-import avatarImg from "@/assets/images/avatar-1.png";
-
-type Tab = "links" | "appearance" | "settings" | "analytics";
-
-const activityData = [
-  { name: 'Mon', views: 400, clicks: 240 },
-  { name: 'Tue', views: 300, clicks: 139 },
-  { name: 'Wed', views: 200, clicks: 980 },
-  { name: 'Thu', views: 278, clicks: 390 },
-  { name: 'Fri', views: 189, clicks: 480 },
-  { name: 'Sat', views: 239, clicks: 380 },
-  { name: 'Sun', views: 349, clicks: 430 },
+const sidebarItems = [
+  { icon: LayoutDashboard, label: "Dashboard", active: true },
+  { icon: FileText, label: "Posts", active: false },
+  { icon: User, label: "Profile", active: false },
+  { icon: Settings, label: "Settings", active: false },
 ];
 
+const StatIcon = ({ icon: Icon, color }: { icon: any, color: string }) => (
+  <div className={`p-2 rounded-lg ${color.replace('text-', 'bg-')}/10`}>
+    <Icon className={`w-5 h-5 ${color}`} />
+  </div>
+);
+
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<Tab>("links");
-  const [links, setLinks] = useState([
-    { id: 1, title: "Latest Youtube Video", url: "https://youtube.com", isActive: true },
-    { id: 2, title: "My Portfolio", url: "https://portfolio.com", isActive: true },
-    { id: 3, title: "Support me on Patreon", url: "https://patreon.com", isActive: false },
-  ]);
-  const [profile, setProfile] = useState({
-    username: "alex_creative",
-    bio: "Digital artist & designer building the future of the web.",
-    avatar: avatarImg,
-    theme: "glass",
-    buttonStyle: "rounded",
-    fontFamily: "sans"
-  });
-
-  const stats = [
-    { title: "Total Views", value: "2.4k", icon: Users, color: "text-blue-400" },
-    { title: "Total Clicks", value: "842", icon: MousePointer2, color: "text-primary" },
-    { title: "Click Rate", value: "35.1%", icon: TrendingUp, color: "text-green-400" },
-    { title: "Active Links", value: "12", icon: LinkIcon, color: "text-accent" },
-  ];
-
-  const themes = [
-    { id: "glass", name: "Glassmorphism", class: "bg-white/10 border border-white/20 backdrop-blur" },
-    { id: "neon", name: "Neon Cyber", class: "bg-black border border-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" },
-    { id: "minimal", name: "Minimal Light", class: "bg-white text-black" },
-    { id: "sunset", name: "Sunset Gold", class: "bg-gradient-to-br from-orange-400 to-rose-400 border-none" },
-  ];
-
-  const addLink = () => {
-    const newLink = {
-      id: Math.max(0, ...links.map(l => l.id)) + 1,
-      title: "New Link",
-      url: "https://",
-      isActive: true,
-    };
-    setLinks([newLink, ...links]);
-  };
-
-  const updateLink = (id: number, field: string, value: any) => {
-    setLinks(links.map(link => link.id === id ? { ...link, [field]: value } : link));
-  };
-
-  const deleteLink = (id: number) => {
-    setLinks(links.filter(link => link.id !== id));
-  };
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background flex text-foreground font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-200 flex">
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
-      <aside className="w-72 border-r border-white/5 glass-panel hidden lg:flex flex-col fixed inset-y-0 left-0 z-50">
-        <div className="p-8 flex items-center gap-3 text-2xl font-heading font-bold text-white">
-          <div className="bg-primary/20 p-2.5 rounded-2xl relative">
-            <Sparkles className="w-6 h-6 text-primary" />
-            <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
-          </div>
-          BioLink
-        </div>
-
-        <nav className="px-4 space-y-2 flex-1 mt-4">
-          {[
-            { id: "links", label: "Links", icon: LinkIcon },
-            { id: "appearance", label: "Appearance", icon: Palette },
-            { id: "analytics", label: "Analytics", icon: BarChart3 },
-            { id: "settings", label: "Settings", icon: Settings },
-          ].map((item) => (
-            <Button 
-              key={item.id}
-              variant="ghost" 
-              className={`w-full justify-start rounded-2xl h-12 text-[15px] px-4 transition-all ${activeTab === item.id ? "bg-primary text-white font-semibold shadow-lg shadow-primary/20" : "text-white/50 hover:text-white hover:bg-white/5"}`}
-              onClick={() => setActiveTab(item.id as Tab)}
-            >
-              <item.icon className={`mr-3 w-5 h-5 ${activeTab === item.id ? "text-white" : "text-white/40"}`} /> {item.label}
-            </Button>
-          ))}
-        </nav>
-
-        <div className="p-6 mt-auto">
-          <div className="p-4 rounded-3xl bg-white/5 border border-white/5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <img src={avatarImg} alt="User" className="w-10 h-10 rounded-full border border-white/10" />
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0c0c0e]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">@alex_creative</p>
-                <p className="text-[11px] text-primary font-bold uppercase tracking-wider">Pro Plan</p>
-              </div>
+      <aside className={`
+        fixed inset-y-0 left-0 w-64 bg-slate-900 border-r border-slate-800 z-50 transform transition-transform duration-300 ease-in-out
+        lg:relative lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <div className="h-full flex flex-col p-4">
+          <div className="flex items-center gap-3 px-2 mb-8">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-white" />
             </div>
-            <Link href="/auth">
-              <Button variant="ghost" className="w-full justify-start text-white/40 hover:text-red-400 hover:bg-red-400/5 h-10 px-2 rounded-xl text-sm">
-                <LogOut className="mr-3 w-4 h-4" /> Sign Out
-              </Button>
-            </Link>
+            <span className="text-xl font-bold text-white tracking-tight">Analytics</span>
+          </div>
+
+          <nav className="flex-1 space-y-1">
+            {sidebarItems.map((item) => (
+              <button
+                key={item.label}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
+                  item.active 
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="font-medium">{item.label}</span>
+                {item.active && <ChevronRight className="w-4 h-4 ml-auto" />}
+              </button>
+            ))}
+          </nav>
+
+          <div className="pt-4 mt-auto border-t border-slate-800">
+            <div className="bg-slate-800/50 rounded-2xl p-4">
+              <p className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-semibold">Pro Plan</p>
+              <p className="text-sm text-slate-300 mb-3">Get unlimited posts and advanced analytics.</p>
+              <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-500 text-white">Upgrade</Button>
+            </div>
           </div>
         </div>
       </aside>
 
-      {/* Editor Main Area */}
-      <main className="flex-1 flex flex-col relative lg:pl-72 bg-black/40">
-        <header className="h-24 border-b border-white/5 flex items-center justify-between px-8 lg:px-12 bg-black/20 backdrop-blur-md sticky top-0 z-40">
-          <div className="flex flex-col">
-            <h2 className="text-xl font-bold text-white font-heading">Dashboard</h2>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-white/40 text-xs">biolink.me/alex_creative</span>
-              <button className="text-[10px] text-primary font-bold uppercase hover:underline">Copy URL</button>
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header */}
+        <header className="h-16 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
+          <div className="flex items-center gap-4 flex-1 max-w-xl">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden text-slate-400 hover:bg-slate-800"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu className="w-6 h-6" />
+            </Button>
+            <div className="relative w-full group hidden md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+              <Input 
+                placeholder="Search analytics..." 
+                className="pl-10 bg-slate-800/50 border-slate-700 focus:border-blue-500/50 transition-all w-full h-10 rounded-xl"
+              />
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/alex_creative">
-              <Button className="rounded-full bg-white text-black hover:bg-white/90 font-bold shadow-xl shadow-white/5">
-                <ExternalLink className="w-4 h-4 mr-2" /> View Live
-              </Button>
-            </Link>
+
+          <div className="flex items-center gap-3 lg:gap-5">
+            <Button variant="ghost" size="icon" className="text-slate-400 relative hover:bg-slate-800">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-900" />
+            </Button>
+            <div className="h-8 w-px bg-slate-800 hidden sm:block" />
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-semibold text-white">Alex Johnson</p>
+                <p className="text-xs text-slate-500">Administrator</p>
+              </div>
+              <Avatar className="h-9 w-9 border-2 border-slate-800 ring-2 ring-blue-600/20 transition-transform hover:scale-110">
+                <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop" />
+                <AvatarFallback>AJ</AvatarFallback>
+              </Avatar>
+            </div>
           </div>
         </header>
 
-        <div className="flex-1 p-8 lg:p-12 overflow-y-auto">
-          <div className="max-w-5xl mx-auto space-y-12">
-            
-            {/* Stats Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {stats.map((stat, i) => (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  key={i} 
-                  className="glass-panel p-6 rounded-3xl border-white/5"
-                >
-                  <div className={`p-2.5 rounded-2xl bg-white/5 w-fit mb-4 ${stat.color}`}>
-                    <stat.icon className="w-5 h-5" />
-                  </div>
-                  <p className="text-sm text-white/40 font-medium">{stat.title}</p>
-                  <h4 className="text-2xl font-black text-white mt-1">{stat.value}</h4>
-                </motion.div>
-              ))}
+        {/* Dashboard Body */}
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-8 custom-scrollbar">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white tracking-tight">Overview</h1>
+              <p className="text-slate-400 text-sm mt-1">Monitor your performance and activity.</p>
             </div>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" className="bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-800">Download CSV</Button>
+              <Button className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20">Create New Post</Button>
+            </div>
+          </div>
 
-            <AnimatePresence mode="wait">
-              {activeTab === "links" && (
-                <motion.div 
-                  key="links"
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            {mockStats.map((stat, idx) => {
+              const Icon = {
+                FileText, Eye, Heart, MessageSquare
+              }[stat.icon] || FileText;
+
+              return (
+                <motion.div
+                  key={stat.label}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-8"
+                  transition={{ delay: idx * 0.1 }}
                 >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-bold text-white font-heading">Manage Links</h3>
-                    <Button 
-                      className="rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold h-12 px-6 shadow-lg shadow-primary/20" 
-                      onClick={addLink}
-                    >
-                      <Plus className="w-5 h-5 mr-2" /> Add Link
-                    </Button>
-                  </div>
+                  <Card className="bg-slate-900 border-slate-800 hover:border-blue-500/50 transition-all group cursor-default">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <StatIcon icon={Icon} color={stat.color} />
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20`}>
+                          {stat.change}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium text-slate-500 mb-1">{stat.label}</p>
+                      <h3 className="text-2xl font-bold text-white">{stat.value}</h3>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
 
-                  <div className="grid gap-4">
-                    {links.map((link) => (
-                      <motion.div 
-                        layout
-                        key={link.id} 
-                        className="group glass-panel rounded-3xl p-6 flex gap-6 items-center border-white/5 hover:border-primary/30 transition-all"
-                      >
-                        <div className="text-white/20 cursor-grab hover:text-white transition-colors">
-                          <GripVertical className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1 grid md:grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <Label className="text-[10px] text-white/30 uppercase font-bold tracking-widest ml-1">Link Title</Label>
-                            <Input 
-                              value={link.title} 
-                              onChange={(e) => updateLink(link.id, "title", e.target.value)}
-                              className="bg-white/5 border-none text-white font-bold text-lg focus-visible:ring-1 focus-visible:ring-primary h-12 rounded-xl"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-[10px] text-white/30 uppercase font-bold tracking-widest ml-1">Destination URL</Label>
-                            <Input 
-                              value={link.url} 
-                              onChange={(e) => updateLink(link.id, "url", e.target.value)}
-                              className="bg-white/5 border-none text-white/50 focus-visible:ring-1 focus-visible:ring-primary h-12 rounded-xl"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-[1px] bg-white/5 hidden md:block" />
-                          <Switch 
-                            checked={link.isActive} 
-                            onCheckedChange={(checked) => updateLink(link.id, "isActive", checked)}
-                            className="data-[state=checked]:bg-primary"
-                          />
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-10 w-10 text-white/20 hover:text-red-400 hover:bg-red-400/5 rounded-xl"
-                            onClick={() => deleteLink(link.id)}
-                          >
+          {/* Charts & Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2 bg-slate-900 border-slate-800 shadow-xl">
+              <CardHeader className="flex flex-row items-center justify-between pb-8">
+                <div>
+                  <CardTitle className="text-lg font-bold text-white">Activity Overview</CardTitle>
+                  <p className="text-sm text-slate-500">Views and engagement over time.</p>
+                </div>
+                <select className="bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-500/50 transition-all">
+                  <option>Last 7 days</option>
+                  <option>Last 30 days</option>
+                </select>
+              </CardHeader>
+              <CardContent className="h-[320px] pr-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={activityData}>
+                    <defs>
+                      <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{fill: '#64748b', fontSize: 12}}
+                      dy={10}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{fill: '#64748b', fontSize: 12}}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#0f172a', 
+                        border: '1px solid #1e293b',
+                        borderRadius: '12px',
+                        color: '#f8fafc'
+                      }} 
+                      itemStyle={{ color: '#f8fafc' }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="views" 
+                      stroke="#2563eb" 
+                      strokeWidth={3}
+                      fillOpacity={1} 
+                      fill="url(#colorViews)" 
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="likes" 
+                      stroke="#ec4899" 
+                      strokeWidth={3}
+                      fillOpacity={1} 
+                      fill="url(#colorLikes)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-900 border-slate-800 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold text-white">Engagement Rate</CardTitle>
+                <p className="text-sm text-slate-500">By device type</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {[
+                    { label: "Mobile", value: 65, color: "bg-blue-600" },
+                    { label: "Desktop", value: 28, color: "bg-purple-600" },
+                    { label: "Tablet", value: 7, color: "bg-pink-600" }
+                  ].map((item) => (
+                    <div key={item.label} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-400 font-medium">{item.label}</span>
+                        <span className="text-white font-bold">{item.value}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${item.value}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                          className={`h-full ${item.color} rounded-full`} 
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-8 p-4 bg-blue-600/10 border border-blue-600/20 rounded-2xl relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-blue-600/5 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  <div className="flex gap-3 relative z-10">
+                    <TrendingUp className="w-5 h-5 text-blue-400 shrink-0" />
+                    <p className="text-sm text-blue-100 leading-relaxed font-medium">Your engagement is up 12% compared to last week!</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Posts Table */}
+          <Card className="bg-slate-900 border-slate-800 shadow-xl overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-bold text-white">Recent Posts</CardTitle>
+                <p className="text-sm text-slate-500">Manage your latest publications.</p>
+              </div>
+              <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/5">View All</Button>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-slate-800/30">
+                  <TableRow className="border-slate-800 hover:bg-transparent">
+                    <TableHead className="text-slate-400 font-semibold py-4">Title</TableHead>
+                    <TableHead className="text-slate-400 font-semibold">Date</TableHead>
+                    <TableHead className="text-slate-400 font-semibold">Views</TableHead>
+                    <TableHead className="text-slate-400 font-semibold">Status</TableHead>
+                    <TableHead className="text-slate-400 font-semibold text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentPosts.map((post) => (
+                    <TableRow key={post.id} className="border-slate-800 hover:bg-slate-800/30 transition-colors group">
+                      <TableCell className="font-semibold text-slate-200 py-4 max-w-[300px] truncate">{post.title}</TableCell>
+                      <TableCell className="text-slate-400 text-sm">{post.date}</TableCell>
+                      <TableCell className="text-slate-400 text-sm">{post.views}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="secondary" 
+                          className={post.status === "Published" 
+                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                            : "bg-slate-800 text-slate-400 border-slate-700"}
+                        >
+                          {post.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg">
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === "analytics" && (
-                <motion.div 
-                  key="analytics"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-8"
-                >
-                  <h3 className="text-2xl font-bold text-white font-heading">Analytics Overview</h3>
-                  <div className="glass-panel p-8 rounded-[2rem] border-white/5 h-[400px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={activityData}>
-                        <defs>
-                          <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                        <XAxis 
-                          dataKey="name" 
-                          stroke="#ffffff30" 
-                          fontSize={12} 
-                          tickLine={false} 
-                          axisLine={false} 
-                          dy={10}
-                        />
-                        <YAxis 
-                          stroke="#ffffff30" 
-                          fontSize={12} 
-                          tickLine={false} 
-                          axisLine={false} 
-                          dx={-10}
-                        />
-                        <Tooltip 
-                          contentStyle={{ backgroundColor: '#1a1a1e', borderColor: '#ffffff10', borderRadius: '16px' }}
-                          itemStyle={{ color: '#fff' }}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="views" 
-                          stroke="hsl(var(--primary))" 
-                          strokeWidth={3}
-                          fillOpacity={1} 
-                          fill="url(#colorViews)" 
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-8 mt-12">
-                    <Card className="glass-panel rounded-[2rem] border-white/5 bg-transparent">
-                      <CardHeader>
-                        <CardTitle className="text-lg font-bold text-white">Top Referrers</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-6">
-                          {[
-                            { name: "Instagram", value: "45%", color: "bg-pink-500" },
-                            { name: "TikTok", value: "32%", color: "bg-black" },
-                            { name: "Direct", value: "15%", color: "bg-blue-400" },
-                            { name: "Twitter", value: "8%", color: "bg-sky-400" },
-                          ].map((item, i) => (
-                            <div key={i} className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-white/60 font-medium">{item.name}</span>
-                                <span className="text-white font-bold">{item.value}</span>
-                              </div>
-                              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                                <div className={`h-full ${item.color} rounded-full`} style={{ width: item.value }} />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="glass-panel rounded-[2rem] border-white/5 bg-transparent">
-                      <CardHeader>
-                        <CardTitle className="text-lg font-bold text-white">Device Breakdown</CardTitle>
-                      </CardHeader>
-                      <CardContent className="flex items-center justify-center pt-8">
-                         <div className="relative w-48 h-48">
-                            <div className="absolute inset-0 rounded-full border-[12px] border-primary" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 70%, 0 70%)' }} />
-                            <div className="absolute inset-0 rounded-full border-[12px] border-accent opacity-50" style={{ clipPath: 'polygon(0 70%, 100% 70%, 100% 100%, 0 100%)' }} />
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                              <span className="text-3xl font-black text-white">70%</span>
-                              <span className="text-xs text-white/40 font-bold uppercase tracking-tighter">Mobile</span>
-                            </div>
-                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === "appearance" && (
-                <motion.div 
-                  key="appearance"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-8"
-                >
-                  <div className="glass-panel p-8 rounded-[2rem] space-y-8 border-white/5">
-                    <h3 className="text-2xl font-bold text-white font-heading">Profile</h3>
-                    <div className="flex flex-col sm:flex-row items-center gap-8">
-                      <div className="relative group">
-                        <img src={profile.avatar} className="w-32 h-32 rounded-full border-4 border-white/10 group-hover:border-primary/50 transition-colors" alt="Avatar" />
-                        <button className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                          <ImageIcon className="w-8 h-8 text-white" />
-                        </button>
-                      </div>
-                      <div className="space-y-4 text-center sm:text-left flex-1">
-                        <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-                          <Button className="rounded-xl bg-primary hover:bg-primary/90 text-white font-bold h-11 px-6">Upload Image</Button>
-                          <Button variant="ghost" className="rounded-xl text-white/40 hover:text-red-400 hover:bg-red-400/5 h-11 px-6">Remove</Button>
-                        </div>
-                        <p className="text-sm text-white/30">Recommended: 1000x1000px JPG or PNG. Max size 5MB.</p>
-                      </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6 pt-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] text-white/30 uppercase font-bold tracking-widest ml-1">Profile Username</Label>
-                        <Input 
-                          value={profile.username} 
-                          onChange={(e) => setProfile({...profile, username: e.target.value})}
-                          className="bg-white/5 border-none text-white font-bold h-14 rounded-2xl focus-visible:ring-1 focus-visible:ring-primary" 
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <Label className="text-[10px] text-white/30 uppercase font-bold tracking-widest ml-1">Profile Bio</Label>
-                        <textarea 
-                          className="w-full bg-white/5 border-none text-white font-medium rounded-2xl p-4 h-32 resize-none focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
-                          value={profile.bio}
-                          onChange={(e) => setProfile({...profile, bio: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="glass-panel p-8 rounded-[2rem] space-y-8 border-white/5">
-                    <h3 className="text-2xl font-bold text-white font-heading">Custom Themes</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      {themes.map(theme => (
-                        <div 
-                          key={theme.id} 
-                          className={`space-y-3 text-center cursor-pointer group p-2 rounded-3xl transition-all ${profile.theme === theme.id ? 'ring-2 ring-primary bg-primary/5 shadow-2xl shadow-primary/20' : 'hover:bg-white/5'}`}
-                          onClick={() => setProfile({...profile, theme: theme.id})}
-                        >
-                          <div className={`h-32 rounded-2xl ${theme.class} group-hover:scale-[1.02] transition-transform shadow-inner`} />
-                          <span className="text-xs text-white/60 font-bold uppercase tracking-widest">{theme.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === "settings" && (
-                 <motion.div 
-                    key="settings"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="space-y-8"
-                  >
-                    <div className="glass-panel p-8 rounded-[2rem] space-y-8 border-white/5">
-                      <h3 className="text-2xl font-bold text-white font-heading">Account Settings</h3>
-                      <div className="grid md:grid-cols-2 gap-8">
-                        <div className="space-y-6">
-                           <div className="space-y-2">
-                            <Label className="text-[10px] text-white/30 uppercase font-bold tracking-widest ml-1">Email Address</Label>
-                            <Input className="bg-white/5 border-none text-white/60 h-14 rounded-2xl" value="alex@example.com" readOnly />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-[10px] text-white/30 uppercase font-bold tracking-widest ml-1">Display Language</Label>
-                            <Input className="bg-white/5 border-none text-white h-14 rounded-2xl" value="English (US)" />
-                          </div>
-                        </div>
-                        <div className="space-y-6">
-                           <div className="space-y-4">
-                              <Label className="text-lg font-bold text-white">Notifications</Label>
-                              <div className="space-y-4">
-                                {[
-                                  { label: "Email notifications", desc: "Receive updates about your account activity" },
-                                  { label: "Marketing emails", desc: "Get news about new features and offers" }
-                                ].map((item, i) => (
-                                  <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/5">
-                                    <div className="space-y-0.5">
-                                      <p className="text-sm font-bold text-white">{item.label}</p>
-                                      <p className="text-[11px] text-white/30">{item.desc}</p>
-                                    </div>
-                                    <Switch defaultChecked />
-                                  </div>
-                                ))}
-                              </div>
-                           </div>
-                        </div>
-                      </div>
-                      <div className="pt-8 border-t border-white/5 flex gap-4">
-                        <Button className="rounded-xl bg-primary hover:bg-primary/90 text-white font-bold h-12 px-8">Save Changes</Button>
-                        <Button variant="ghost" className="rounded-xl text-white/40 hover:bg-white/5 h-12 px-8">Discard</Button>
-                      </div>
-                    </div>
-
-                    <div className="glass-panel p-8 rounded-[2rem] space-y-8 border-white/5 border-red-500/10">
-                      <h3 className="text-2xl font-bold text-red-400 font-heading">Danger Zone</h3>
-                      <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/10 flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="space-y-1 text-center md:text-left">
-                          <p className="text-lg font-bold text-white">Delete Account</p>
-                          <p className="text-sm text-white/40">Permanently remove your account and all its data. This action cannot be undone.</p>
-                        </div>
-                        <Button variant="destructive" className="rounded-xl h-12 px-8 font-bold">Delete Forever</Button>
-                      </div>
-                    </div>
-                  </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
         </div>
       </main>
-
-      {/* Live Preview Panel (Desktop only) */}
-      <aside className="w-[500px] border-l border-white/5 bg-black/20 hidden xl:flex items-center justify-center p-12 sticky top-0 h-screen">
-        <div className="mobile-mockup scale-[0.9] origin-center transform-gpu shadow-[0_0_80px_rgba(0,0,0,0.6)] border-white/10 border">
-          <img 
-            src={bgMobile} 
-            alt="Background" 
-            className={`absolute inset-0 w-full h-full object-cover opacity-80 ${profile.theme === 'minimal' ? 'brightness-150 grayscale' : ''}`} 
-          />
-          
-          <div className="relative z-10 flex flex-col items-center p-6 h-full overflow-y-auto custom-scrollbar">
-            <motion.img 
-              layoutId="avatar"
-              src={profile.avatar} 
-              alt="Avatar" 
-              className="w-24 h-24 rounded-full border-4 border-white shadow-[0_0_30px_rgba(255,255,255,0.3)] mt-12" 
-            />
-            <h3 className="text-2xl font-black text-white mt-5 tracking-tight">@{profile.username}</h3>
-            <p className="text-white/80 text-center text-[15px] mt-3 font-medium leading-relaxed px-4">{profile.bio}</p>
-            
-            <div className="w-full space-y-4 mt-10 pb-12 px-2">
-              {links.filter(l => l.isActive).map((link) => {
-                const themeData = themes.find(t => t.id === profile.theme);
-                const buttonRadius = profile.buttonStyle === 'pill' ? 'rounded-full' : profile.buttonStyle === 'rounded' ? 'rounded-2xl' : 'rounded-none';
-                
-                return (
-                  <motion.a 
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    key={link.id} 
-                    href="#" 
-                    className={`flex items-center justify-center p-4.5 transition-all shadow-xl active:scale-95 font-bold text-[15px] border-white/10 ${themeData?.class} ${buttonRadius}`}
-                  >
-                    {link.title}
-                  </motion.a>
-                );
-              })}
-            </div>
-            
-            <div className="mt-auto pt-6 flex items-center justify-center gap-5 text-white/50 pb-6">
-              <Sparkles className="w-5 h-5 hover:text-white transition-colors cursor-pointer"/>
-              <Layers className="w-5 h-5 hover:text-white transition-colors cursor-pointer"/>
-            </div>
-          </div>
-        </div>
-      </aside>
+      
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #1e293b;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #334155;
+        }
+      `}</style>
     </div>
   );
 }
